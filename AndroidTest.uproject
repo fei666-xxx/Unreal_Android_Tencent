@@ -1,0 +1,13 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "{6AF6BFB5-431A-2519-2866-259985E59E86}",
+	"Category": "",
+	"Description": "",
+	"Modules": [
+		{
+			"Name": "AndroidTest",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	]
+}
