@@ -18,6 +18,10 @@ class AAndroidTestCharacter : public ACharacter
 	/** Follow camera */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Camera, meta = (AllowPrivateAccess = "true"))
 	class UCameraComponent* FollowCamera;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = Power, meta = (AllowPrivateAccess = "true"))
+	class USphereComponent* CollectionSphere;
+
 public:
 	AAndroidTestCharacter();
 
@@ -63,10 +67,39 @@ protected:
 	virtual void SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent) override;
 	// End of APawn interface
 
+	UFUNCTION(BlueprintCallable, Category="Pickups")
+	void CollectPickups();
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power", meta = (BlueprintProtected = "true"))
+	float InitBatteryPower;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power", meta = (BlueprintProtected = "true"))
+	float SpeedFactor;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Power", meta = (BlueprintProtected = "true"))
+	float BaseSpeed;
+
+	UFUNCTION(BlueprintImplementableEvent, Category="Power")
+	void PowerChangeEffect();
+
+private:
+	UPROPERTY(VisibleAnywhere, Category = "Power")
+	float CharacterPower;
 public:
 	/** Returns CameraBoom subobject **/
 	FORCEINLINE class USpringArmComponent* GetCameraBoom() const { return CameraBoom; }
 	/** Returns FollowCamera subobject **/
 	FORCEINLINE class UCameraComponent* GetFollowCamera() const { return FollowCamera; }
+
+	FORCEINLINE class USphereComponent* GetCollectionSphere() const { return CollectionSphere; }
+
+	UFUNCTION(BlueprintPure,Category="Power")
+	float GetInitialPower();
+
+	UFUNCTION(BlueprintPure, Category = "Power")
+	float GetCurrentPower();
+
+	UFUNCTION(BlueprintCallable, Category = "Power")
+	void UpdatePower(float PowerChange);
 };
 

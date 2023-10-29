@@ -13,7 +13,19 @@ class AAndroidTestGameMode : public AGameModeBase
 
 public:
 	AAndroidTestGameMode();
-};
+	virtual void Tick(float DeltaTime) override;
+	virtual void BeginPlay() override;
+
+protected:
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category="Power", meta=(BlueprintProtected="true"))
+	float DecayRate;
+
+	UPROPERTY(EditDefaultsOnly, BlueprintReadWrite, Category = "Power", meta = (BlueprintProtected = "true"))
+	TSubclassOf<class UUserWidget>HUDWidgetClass;
+
+	UPROPERTY()
+	class UUserWidget* CurrentWidget;
+};	
 
 
 

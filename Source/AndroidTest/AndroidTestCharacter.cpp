@@ -8,6 +8,9 @@
 #include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/Controller.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Components/SphereComponent.h"
+#include "CollectActor.h"
+#include "BatteryCollect.h"
 
 //////////////////////////////////////////////////////////////////////////
 // AAndroidTestCharacter
@@ -43,6 +46,16 @@ AAndroidTestCharacter::AAndroidTestCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+	CollectionSphere = CreateDefaultSubobject<USphereComponent>(TEXT("CollectionSphere"));
+	CollectionSphere->SetupAttachment(RootComponent);
+	CollectionSphere->SetSphereRadius(200.0f);
+
+	InitBatteryPower = 2000.0f;
+	CharacterPower = InitBatteryPower;
+
+	SpeedFactor = 0.4f;
+	BaseSpeed = 100.0f;
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -57,6 +70,8 @@ void AAndroidTestCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("Jump", IE_Pressed, this, &ACharacter::Jump);
 	PlayerInputComponent->BindAction("Jump", IE_Released, this, &ACharacter::StopJumping);
 
+	PlayerInputComponent->BindAction("Collect", IE_Pressed, this, &AAndroidTestCharacter::CollectPickups);
+	
 	PlayerInputComponent->BindAxis("MoveForward", this, &AAndroidTestCharacter::MoveForward);
 	PlayerInputComponent->BindAxis("MoveRight", this, &AAndroidTestCharacter::MoveRight);
 
@@ -137,4 +152,46 @@ void AAndroidTestCharacter::MoveRight(float Value)
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
 	}
+}
+
+void AAndroidTestCharacter::CollectPickups()
+{
+	TArray<AActor*> CollectedActors;
+	CollectionSphere->GetOverlappingActors(CollectedActors);
+
+	float CollectPower = 0.0f;
+
+	for (auto CollectedActor : CollectedActors)
+	{
+		ACollectActor* const TestPickup = Cast<ACollectActor>(CollectedActor);
+		if (TestPickup && !TestPickup->IsPendingKill() && TestPickup->IsActive())
+		{
+			TestPickup->WasCollected();
+
+			ABatteryCollect* TestBattery = Cast<ABatteryCollect>(TestPickup);
+			if (TestBattery)
+			{
+				CollectPower += TestBattery->GetPower();
+			}
+
+			TestPickup->SetActive(false);
+		}
+	}
+	UpdatePower(CollectPower);
+}
+
+float AAndroidTestCharacter::GetInitialPower()
+{
+	return InitBatteryPower;
+}
+float AAndroidTestCharacter::GetCurrentPower()
+{
+	return CharacterPower;
+}
+void AAndroidTestCharacter::UpdatePower(float PowerChange)
+{
+	CharacterPower += PowerChange;
+	CharacterPower = FMath::Min(CharacterPower, InitBatteryPower);
+	GetCharacterMovement()->MaxWalkSpeed = BaseSpeed + SpeedFactor * CharacterPower;
+	PowerChangeEffect();
 }
